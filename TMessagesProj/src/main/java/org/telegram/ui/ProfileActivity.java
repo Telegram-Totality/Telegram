@@ -6141,7 +6141,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     } else if (position == notificationRow) {
                         textCell.setTextAndIcon(LocaleController.getString("NotificationsAndSounds", R.string.NotificationsAndSounds), R.drawable.menu_notifications, true);
                     } else if (position == ethereumKeyRow) {
-                        textCell.setTextAndIcon("Ethereum Key Storage", R.drawable.lock_close, true);
+                        textCell.setTextAndIcon("Ethereum Key Storage", R.drawable.key, true);
                     } else if (position == privacyRow) {
                         textCell.setTextAndIcon(LocaleController.getString("PrivacySettings", R.string.PrivacySettings), R.drawable.menu_secret, true);
                     } else if (position == dataRow) {
