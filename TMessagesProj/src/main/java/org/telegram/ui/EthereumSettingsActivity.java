@@ -1,6 +1,5 @@
 package org.telegram.ui;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -29,11 +28,14 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.Totality;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
+import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Keys;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -47,6 +49,51 @@ public class EthereumSettingsActivity extends BaseFragment {
     private TextView checkTextView;
     private TextView helpTextViewPublicKey;
     private TextView helpTextViewPrivateKey;
+    private AlertDialog.Builder dlgAlert;
+
+    static class SetPublicKeyTask extends AsyncTask<String, Void, Void> {
+
+        private WeakReference<EthereumSettingsActivity> activity;
+        private String endpoint;
+        private TLRPC.User user;
+        private Totality.TotalityException e;
+        private SharedPreferences.Editor edit;
+
+        SetPublicKeyTask(Context context, EthereumSettingsActivity activity, SharedPreferences.Editor edit) {
+            this.activity = new WeakReference<>(activity);
+            this.endpoint = context.getResources().getString(R.string.TOTALITY_ENDPOINT);
+            this.user = MessagesController.getInstance(this.activity.get().currentAccount)
+                    .getUser(UserConfig.getInstance(this.activity.get().currentAccount)
+                            .getClientUserId());
+            this.edit = edit;
+        }
+
+        @Override
+        protected void onPostExecute(Void s) {
+            EthereumSettingsActivity activity = this.activity.get();
+            if (activity == null){
+                super.onPostExecute(s);
+                return;
+            }
+            if (this.e != null){
+                activity.dlgAlert.setMessage("Something went wrong");
+                activity.dlgAlert.show();
+                super.onPostExecute(s);
+                return;
+            }
+            this.edit.apply();
+            super.onPostExecute(s);
+        }
+
+        protected Void doInBackground(String... address) {
+            try {
+                Totality.SetAddress(this.endpoint, this.user.id, address[0]);
+            } catch (Totality.TotalityException e) {
+                this.e = e;
+            }
+            return null;
+        }
+    }
 
     static class GetPublicKeyTask extends AsyncTask<Integer, Void, String> {
 
@@ -66,6 +113,7 @@ public class EthereumSettingsActivity extends BaseFragment {
         protected void onPostExecute(String s) {
             EthereumSettingsActivity activity = this.activity.get();
             if (activity == null) {
+                super.onPostExecute(s);
                 return;
             }
             activity.publicKeyField.setHint("Public key (0x..)");
@@ -252,7 +300,57 @@ public class EthereumSettingsActivity extends BaseFragment {
     }
 
     private void saveKeyStorage(Context context) {
-        finishFragment();
+        SharedPreferences userDetails = context.getSharedPreferences("userdetails", Context.MODE_PRIVATE);
+        String privateKey = userDetails.getString("eth_private_key", "");
+        final String privateKeyFieldValue = privateKeyField.getText().toString().replace("\n", "").trim();
+        String expectedPubKey = null;
+
+        dlgAlert  = new AlertDialog.Builder(context);
+        dlgAlert.setTitle("Key management");
+        dlgAlert.setPositiveButton("Ok",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //dismiss the dialog
+                    }
+                }
+        );
+
+        if (!privateKeyFieldValue.isEmpty()){
+            try {
+                // Check if privatekey field is valid and save on disk
+                expectedPubKey = Keys.toChecksumAddress(Credentials.create(privateKeyFieldValue).getAddress());
+            } catch (Exception ignored) {
+                dlgAlert.setMessage("ERROR: private key is invalid format, progress is not saved.");
+                dlgAlert.create().show();
+                finishFragment();
+                return;
+            }
+            privateKey = privateKeyFieldValue;
+        }
+        else if(!privateKey.isEmpty()){
+            expectedPubKey = Keys.toChecksumAddress(Credentials.create(privateKey).getAddress());
+        }
+
+        final String publicKey = Keys.toChecksumAddress(publicKeyField.getText().toString().replace("\n", ""));
+        SharedPreferences.Editor edit = userDetails.edit();
+        // If the private key is null, the expected pub key is also null
+        if(expectedPubKey == null){
+            edit.putBoolean("keys_setup", false);
+            dlgAlert.setMessage("Your private key is not set");
+            dlgAlert.create().show();
+            edit.apply();
+        }
+        else if(!expectedPubKey.equals(publicKey)){
+            edit.putBoolean("keys_setup", false);
+            dlgAlert.setMessage("WARNING: private key does not match public address");
+            dlgAlert.create().show();
+            edit.apply();
+        }else{
+            new SetPublicKeyTask(context, this, edit).execute(publicKey);
+            edit.putString("eth_private_key", privateKey);
+            edit.putBoolean("keys_setup", true);
+            finishFragment();
+        }
     }
 
     @Override
