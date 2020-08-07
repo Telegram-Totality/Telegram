@@ -38,6 +38,7 @@ dependencies {
     implementation 'com.googlecode.mp4parser:isoparser:1.0.6'
     implementation 'com.stripe:stripe-android:2.0.2'
     implementation files('libs/libgsaverification-client.aar')
+    implementation 'org.web3j:core:4.2.0-android'
 }
 
 android {
@@ -94,6 +95,7 @@ android {
             applicationIdSuffix ".beta"
             minifyEnabled true
             multiDexEnabled true
+            resValue "string", "TOTALITY_ENDPOINT", TOTALITY_ENDPOINT
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
@@ -133,6 +135,7 @@ android {
             applicationIdSuffix ".beta"
             minifyEnabled true
             multiDexEnabled true
+            resValue "string", "TOTALITY_ENDPOINT", TOTALITY_ENDPOINT
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
@@ -143,6 +146,7 @@ android {
             minifyEnabled true
             shrinkResources false
             multiDexEnabled true
+            resValue "string", "TOTALITY_ENDPOINT", TOTALITY_ENDPOINT
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

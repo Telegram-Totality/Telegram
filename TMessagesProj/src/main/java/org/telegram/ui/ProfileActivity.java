@@ -329,6 +329,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int settingsSectionRow;
     private int settingsSectionRow2;
     private int notificationRow;
+    private int ethereumKeyRow;
     private int languageRow;
     private int privacyRow;
     private int dataRow;
@@ -2321,6 +2322,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 presentFragment(fragment);
             } else if (position == notificationRow) {
                 presentFragment(new NotificationsSettingsActivity());
+            } else if (position == ethereumKeyRow) {
+                presentFragment(new EthereumSettingsActivity());
             } else if (position == privacyRow) {
                 presentFragment(new PrivacySettingsActivity());
             } else if (position == dataRow) {
@@ -4640,6 +4643,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         settingsSectionRow = -1;
         settingsSectionRow2 = -1;
         notificationRow = -1;
+        ethereumKeyRow = -1;
         languageRow = -1;
         privacyRow = -1;
         dataRow = -1;
@@ -4718,6 +4722,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 settingsSectionRow = rowCount++;
                 settingsSectionRow2 = rowCount++;
                 notificationRow = rowCount++;
+                ethereumKeyRow = rowCount++;
                 privacyRow = rowCount++;
                 dataRow = rowCount++;
                 chatRow = rowCount++;
@@ -6135,6 +6140,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         textCell.setTextAndIcon(LocaleController.getString("Language", R.string.Language), R.drawable.menu_language, false);
                     } else if (position == notificationRow) {
                         textCell.setTextAndIcon(LocaleController.getString("NotificationsAndSounds", R.string.NotificationsAndSounds), R.drawable.menu_notifications, true);
+                    } else if (position == ethereumKeyRow) {
+                        textCell.setTextAndIcon("Ethereum Key Storage", R.drawable.lock_close, true);
                     } else if (position == privacyRow) {
                         textCell.setTextAndIcon(LocaleController.getString("PrivacySettings", R.string.PrivacySettings), R.drawable.menu_secret, true);
                     } else if (position == dataRow) {
@@ -6278,7 +6285,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             if (notificationRow != -1) {
                 int position = holder.getAdapterPosition();
-                return position == notificationRow || position == numberRow || position == privacyRow ||
+                return position == notificationRow || position == ethereumKeyRow || position == numberRow || position == privacyRow ||
                         position == languageRow || position == setUsernameRow || position == bioRow ||
                         position == versionRow || position == dataRow || position == chatRow ||
                         position == questionRow || position == devicesRow || position == filtersRow ||
@@ -6307,7 +6314,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             } else if (position == settingsTimerRow || position == settingsKeyRow || position == reportRow ||
                     position == subscribersRow || position == administratorsRow || position == blockedUsersRow ||
                     position == addMemberRow || position == joinRow || position == unblockRow ||
-                    position == sendMessageRow || position == notificationRow || position == privacyRow ||
+                    position == sendMessageRow || position == notificationRow || position == ethereumKeyRow || position == privacyRow ||
                     position == languageRow || position == dataRow || position == chatRow ||
                     position == questionRow || position == devicesRow || position == filtersRow ||
                     position == faqRow || position == policyRow || position == sendLogsRow ||
