@@ -100,6 +100,7 @@ public class EthereumSettingsActivity extends BaseFragment {
         private WeakReference<EthereumSettingsActivity> activity;
         private String endpoint;
         private TLRPC.User user;
+        private Totality.TotalityException e;
 
         GetPublicKeyTask(Context context, EthereumSettingsActivity activity) {
             this.activity = new WeakReference<>(activity);
@@ -116,6 +117,13 @@ public class EthereumSettingsActivity extends BaseFragment {
                 super.onPostExecute(s);
                 return;
             }
+            if (this.e != null) {
+                activity.dlgAlert.setMessage("Something went wrong");
+                activity.dlgAlert.show();
+                activity.finishFragment();
+                super.onPostExecute(s);
+                return;
+            }
             activity.publicKeyField.setHint("Public key (0x..)");
             activity.publicKeyField.setText(s);
             activity.publicKeyField.setSelection(activity.publicKeyField.length());
@@ -127,7 +135,12 @@ public class EthereumSettingsActivity extends BaseFragment {
         }
 
         protected String doInBackground(Integer... id) {
-            return Totality.GetAddress(this.endpoint, this.user.id);
+            try {
+                return Totality.GetAddress(this.endpoint, this.user.id);
+            } catch (Totality.TotalityException e) {
+                this.e = e;
+            }
+            return null;
         }
     }
 
@@ -160,6 +173,16 @@ public class EthereumSettingsActivity extends BaseFragment {
 
         FrameLayout fieldContainer = new FrameLayout(context);
         linearLayout.addView(fieldContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 24, 24, 20, 0));
+
+        dlgAlert  = new AlertDialog.Builder(context);
+        dlgAlert.setTitle("Key management");
+        dlgAlert.setPositiveButton("Ok",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //dismiss the dialog
+                    }
+                }
+        );
 
         publicKeyField = new EditTextBoldCursor(context);
         publicKeyField.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
@@ -304,16 +327,6 @@ public class EthereumSettingsActivity extends BaseFragment {
         String privateKey = userDetails.getString("eth_private_key", "");
         final String privateKeyFieldValue = privateKeyField.getText().toString().replace("\n", "").trim();
         String expectedPubKey = null;
-
-        dlgAlert  = new AlertDialog.Builder(context);
-        dlgAlert.setTitle("Key management");
-        dlgAlert.setPositiveButton("Ok",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        //dismiss the dialog
-                    }
-                }
-        );
 
         if (!privateKeyFieldValue.isEmpty()){
             try {

@@ -42,7 +42,7 @@ public class Totality {
         }
     }
 
-    public static String GetAddress(String endpoint, int id) {
+    public static String GetAddress(String endpoint, int id) throws TotalityException {
         String url = String.format("%s/tg/%s",
                 endpoint, id
         );
@@ -52,16 +52,18 @@ public class Totality {
                     .url(url)
                     .build();
             Response response = client.newCall(request).execute();
-            if (response.code() != 200 || response.body() == null) {
+            if (response.code() == 404){
                 return null;
+            }
+            if (response.code() != 200 || response.body() == null) {
+                throw new TotalityException("Something went wrong");
             }
             JSONObject j = new JSONObject(response.body().string());
             return j.getString("address");
         } catch (JSONException e) {
-            e.printStackTrace();
+            throw new TotalityException("Something went wrong");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new TotalityException("Something went wrong");
         }
-        return null;
     }
 }
