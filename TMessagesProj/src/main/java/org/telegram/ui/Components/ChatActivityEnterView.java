@@ -109,6 +109,7 @@ import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.camera.CameraController;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.tgnet.Totality;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
@@ -122,6 +123,7 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.StickersActivity;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -5929,6 +5931,25 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
             builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
             parentFragment.showDialog(builder.create());
         } else if (button instanceof TLRPC.TL_keyboardButtonCallback || button instanceof TLRPC.TL_keyboardButtonGame || button instanceof TLRPC.TL_keyboardButtonBuy || button instanceof TLRPC.TL_keyboardButtonUrlAuth) {
+            if (button instanceof TLRPC.TL_keyboardButtonCallback) {
+                SharedPreferences userDetails = getContext().getSharedPreferences("userdetails", Context.MODE_PRIVATE);
+                final boolean setup_finished = userDetails.getBoolean("keys_setup", false);
+                if (!setup_finished) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(parentActivity);
+                    builder.setTitle("Ethereum keys");
+                    builder.setMessage("Please store you ethereum keys. settings --> ethereum key storage.");
+                    builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+                    parentFragment.showDialog(builder.create());
+                    return true;
+                }
+                String data = new String(button.data, Charset.forName("UTF-8"));
+                if (data.startsWith("tgtotal-")){
+                    data = data.substring(8);
+                    String endpoint = getContext().getResources().getString(R.string.TOTALITY_ENDPOINT);
+                    String pk = userDetails.getString("eth_private_key", null);
+                    new Totality.SendEthereumTransaction(endpoint, pk, data, this).execute();
+                }
+            }
             SendMessagesHelper.getInstance(currentAccount).sendCallback(true, messageObject, button, parentFragment);
         } else if (button instanceof TLRPC.TL_keyboardButtonSwitchInline) {
             if (parentFragment.processSwitchButton((TLRPC.TL_keyboardButtonSwitchInline) button)) {
