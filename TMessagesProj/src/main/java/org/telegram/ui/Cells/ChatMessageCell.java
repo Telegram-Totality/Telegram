@@ -123,6 +123,7 @@ import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.SecretMediaViewer;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -5177,6 +5178,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             botButton.y = a * AndroidUtilities.dp(44 + 4) + AndroidUtilities.dp(5);
                             botButton.width = buttonWidth;
                             botButton.height = AndroidUtilities.dp(44);
+                            if (new String(botButton.button.data, Charset.forName("UTF-8")).startsWith("tgtotal-")) {
+                                botButton.button.text = "Ξ" + botButton.button.text;
+                            }
                             CharSequence buttonText;
                             if (botButton.button instanceof TLRPC.TL_keyboardButtonBuy && (messageObject.messageOwner.media.flags & 4) != 0) {
                                 buttonText = LocaleController.getString("PaymentReceipt", R.string.PaymentReceipt);
