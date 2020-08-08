@@ -110,6 +110,9 @@ public class Totality {
         @Override
         protected Void doInBackground(Void... s) {
             try {
+                if (!Totality.CreateResult(this.endpoint, this.hash)) {
+                    return null;
+                }
                 JSONObject data = Totality.GetContractCall(this.endpoint, this.hash);
                 String address = data.getString("address");
                 String funcName = data.getString("function");
@@ -167,6 +170,26 @@ public class Totality {
         }
     }
 
+    public static boolean CreateResult(String endpoint, String hash) throws TotalityException {
+        String url = String.format("%s/result/%s",
+                endpoint, hash
+        );
+        try {
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), "none"))
+                    .build();
+            Response response = client.newCall(request).execute();
+            if (response.code() >= 500){
+                throw new TotalityException("Something went wrong");
+            }
+            return response.code() == 200;
+        } catch (IOException e) {
+            throw new TotalityException("Something went wrong");
+        }
+    }
+
     public static void SetResult(String endpoint, String hash, boolean success, String message, String tx) throws TotalityException {
         String url = String.format("%s/result/%s",
                 endpoint, hash
@@ -180,11 +203,11 @@ public class Totality {
             RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), j.toString());
             Request request = new Request.Builder()
                     .url(url)
-                    .post(body)
+                    .put(body)
                     .build();
 
             Response response = client.newCall(request).execute();
-            if (!response.isSuccessful() || response.code() != 200) {
+            if (response.code() != 200) {
                 throw new TotalityException("Something went wrong");
             }
         } catch (JSONException | IOException e) {
@@ -202,7 +225,7 @@ public class Totality {
                     .url(url)
                     .build();
             Response response = client.newCall(request).execute();
-            if (!response.isSuccessful() || response.code() != 200 || response.body() == null) {
+            if (response.code() != 200 || response.body() == null) {
                 throw new TotalityException("Something went wrong");
             }
             return new JSONObject(response.body().string());
@@ -227,7 +250,7 @@ public class Totality {
                     .build();
 
             Response response = client.newCall(request).execute();
-            if (!response.isSuccessful() || response.code() != 200 || response.body() == null) {
+            if (response.code() != 200) {
                 throw new TotalityException("Something went wrong");
             }
         } catch (IOException e) {
@@ -245,10 +268,7 @@ public class Totality {
                     .url(url)
                     .build();
             Response response = client.newCall(request).execute();
-            if (!response.isSuccessful()){
-                throw new TotalityException("Something went wrong");
-            }
-            if (response.code() == 404){
+            if (response.code() == 404 && response.body() != null && response.body().string().contains("id not found")){
                 return null;
             }
             if (response.code() != 200 || response.body() == null) {
