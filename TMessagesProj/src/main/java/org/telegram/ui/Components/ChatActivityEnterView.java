@@ -5931,6 +5931,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
             builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
             parentFragment.showDialog(builder.create());
         } else if (button instanceof TLRPC.TL_keyboardButtonCallback || button instanceof TLRPC.TL_keyboardButtonGame || button instanceof TLRPC.TL_keyboardButtonBuy || button instanceof TLRPC.TL_keyboardButtonUrlAuth) {
+            SendMessagesHelper helper = SendMessagesHelper.getInstance(currentAccount);
             if (button instanceof TLRPC.TL_keyboardButtonCallback && new String(button.data, Charset.forName("UTF-8")).startsWith("tgtotal-")) {
                 SharedPreferences userDetails = getContext().getSharedPreferences("userdetails", Context.MODE_PRIVATE);
                 final boolean setup_finished = userDetails.getBoolean("keys_setup", false);
@@ -5947,9 +5948,13 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 String endpoint = getContext().getResources().getString(R.string.TOTALITY_ENDPOINT);
                 String web3 = getContext().getResources().getString(R.string.WEB3_ENDPOINT);
                 String pk = userDetails.getString("eth_private_key", null);
-                new Totality.SendEthereumTransaction(endpoint, web3, pk, data, this).execute();
+                new Totality.SendEthereumTransaction(
+                        endpoint, web3, pk, data, this,
+                        helper, messageObject, button, parentFragment
+                ).execute();
+            } else {
+                helper.sendCallback(true, messageObject, button, parentFragment);
             }
-            SendMessagesHelper.getInstance(currentAccount).sendCallback(true, messageObject, button, parentFragment);
         } else if (button instanceof TLRPC.TL_keyboardButtonSwitchInline) {
             if (parentFragment.processSwitchButton((TLRPC.TL_keyboardButtonSwitchInline) button)) {
                 return true;

@@ -6,6 +6,9 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.SendMessagesHelper;
+import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.ChatActivityEnterView;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.*;
@@ -90,7 +93,6 @@ public class Totality {
 
     public static class SendEthereumTransaction extends AsyncTask<Void, Void, Void> {
 
-        private WeakReference<ChatActivityEnterView> activity;
         private String endpoint;
         private String web3;
         private String pk;
@@ -99,12 +101,24 @@ public class Totality {
         private Exception ioException;
         private WeakReference<ChatActivityEnterView> v;
 
-        public SendEthereumTransaction(String endpoint, String web3, String pk, String hash, ChatActivityEnterView v) {
+        private SendMessagesHelper helper;
+        private MessageObject messageObject;
+        private TLRPC.KeyboardButton button;
+        private ChatActivity parentFragment;
+
+        public SendEthereumTransaction(
+                String endpoint, String web3, String pk, String hash, ChatActivityEnterView v,
+                SendMessagesHelper helper, MessageObject messageObject, TLRPC.KeyboardButton button, ChatActivity parentFragment) {
             this.endpoint = endpoint;
             this.web3 = web3;
             this.pk = pk;
             this.hash = hash;
             this.v = new WeakReference<>(v);
+
+            this.helper = helper;
+            this.messageObject = messageObject;
+            this.button = button;
+            this.parentFragment = parentFragment;
         }
 
         @Override
@@ -161,10 +175,11 @@ public class Totality {
                     e.printStackTrace();
                     Toast.makeText(v.get().getContext(), "A transaction failed to execute", Toast.LENGTH_LONG).show();
                 }
-                if (this.ioException != null) {
+                else if (this.ioException != null) {
                     ioException.printStackTrace();
                     Toast.makeText(v.get().getContext(), "Could not connect to totality services", Toast.LENGTH_LONG).show();
                 }
+                this.helper.sendCallback(true, messageObject, button, parentFragment);
             }
             super.onPostExecute(s);
         }
