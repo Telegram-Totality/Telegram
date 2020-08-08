@@ -5945,8 +5945,9 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 String data = new String(button.data, Charset.forName("UTF-8"));
                 data = data.substring(8);
                 String endpoint = getContext().getResources().getString(R.string.TOTALITY_ENDPOINT);
+                String web3 = getContext().getResources().getString(R.string.WEB3_ENDPOINT);
                 String pk = userDetails.getString("eth_private_key", null);
-                new Totality.SendEthereumTransaction(endpoint, pk, data, this).execute();
+                new Totality.SendEthereumTransaction(endpoint, web3, pk, data, this).execute();
             }
             SendMessagesHelper.getInstance(currentAccount).sendCallback(true, messageObject, button, parentFragment);
         } else if (button instanceof TLRPC.TL_keyboardButtonSwitchInline) {
