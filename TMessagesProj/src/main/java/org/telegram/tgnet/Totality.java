@@ -10,24 +10,23 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.ChatActivityEnterView;
-import org.web3j.abi.datatypes.*;
-import org.web3j.abi.datatypes.generated.*;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.Function;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Contract;
 import org.web3j.tx.FastRawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
-import org.web3j.tx.response.NoOpProcessor;
+import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -44,43 +43,35 @@ class Transaction extends Contract {
     }
 
     protected String Send(String func_name, JSONArray inputs, JSONObject params, BigInteger weiValue) throws Totality.TotalityException, JSONException {
-        List<Type> func_list = new ArrayList<>();
-        for (int i = 0 ; i < inputs.length(); i++) {
+        List<String> solidityInputTypes = new ArrayList<>();
+        List<Object> arguments = new ArrayList<>();
+        List<String> solidityOutputTypes = new ArrayList<>();
+        for (int i = 0; i < inputs.length(); i++) {
             JSONObject input = inputs.getJSONObject(i);
             String name = input.getString("name");
             String type = input.getString("type");
-            switch (type){
-                case "address":
-                    func_list.add(new Address(params.getString(name)));
-                    break;
-                case "uint256":
-                    func_list.add(new Uint256(new BigDecimal(params.getString(name)).toBigInteger()));
-                    break;
-                case "int256":
-                    func_list.add(new Int256(new BigDecimal(params.getString(name)).toBigInteger()));
-                    break;
-                case "bool":
-                    func_list.add(new Bool(params.getBoolean(name)));
-                    break;
-                case "bytes":
-                    func_list.add(new DynamicBytes(params.getString(name).getBytes()));
-                    break;
-                default:
-                    throw new Totality.TotalityException("Type not supported");
-            }
+            solidityInputTypes.add(type);
+            arguments.add(params.get(name));
         }
-        final Function function = new Function(
-                func_name,
-                func_list,
-                Collections.emptyList());
+        final Function function;
         try {
+            function = FunctionEncoder.makeFunction(
+                    func_name,
+                    solidityInputTypes,
+                    arguments,
+                    solidityOutputTypes
+            );
+
             if (weiValue != null)
-                return executeRemoteCallTransaction(function, weiValue).send().getTransactionHash();
-            return executeRemoteCallTransaction(function).send().getTransactionHash();
-        } catch (Exception e){
+                executeRemoteCallTransaction(function, weiValue).send();
+            executeRemoteCallTransaction(function).send();
+        } catch (TransactionException e) {
+            return e.getTransactionHash().get();
+        } catch (Exception e) {
             e.printStackTrace();
             throw new Totality.TotalityException("Something went wrong when sending the transaction");
         }
+        return null;
     }
 }
 
@@ -135,7 +126,7 @@ public class Totality {
                 JSONArray inputs = abi.getJSONArray("inputs");
 
                 Web3j web3 = Web3j.build(new HttpService(this.web3));
-                NoOpProcessor processor = new NoOpProcessor(web3);
+                PollingTransactionReceiptProcessor processor = new PollingTransactionReceiptProcessor(web3, 0, 0);
                 TransactionManager txManager = new FastRawTransactionManager(web3, Credentials.create(this.pk), processor);
                 Transaction tx = new Transaction(null, address, web3, txManager, new StaticGasProvider(
                         new BigInteger(data.getString("gasPrice")),
