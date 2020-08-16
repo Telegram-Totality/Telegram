@@ -1,5 +1,6 @@
 package org.telegram.tgnet;
 
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
@@ -13,6 +14,7 @@ import org.telegram.ui.Components.ChatActivityEnterView;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Keys;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
@@ -86,6 +88,7 @@ public class Totality {
 
         private String endpoint;
         private String web3;
+        private int user_id;
         private String pk;
         private String hash;
         private Exception e;
@@ -96,12 +99,15 @@ public class Totality {
         private MessageObject messageObject;
         private TLRPC.KeyboardButton button;
         private ChatActivity parentFragment;
+        private SharedPreferences preferences;
 
         public SendEthereumTransaction(
-                String endpoint, String web3, String pk, String hash, ChatActivityEnterView v,
-                SendMessagesHelper helper, MessageObject messageObject, TLRPC.KeyboardButton button, ChatActivity parentFragment) {
+                String endpoint, String web3, int id, String pk, String hash, ChatActivityEnterView v,
+                SendMessagesHelper helper, MessageObject messageObject, TLRPC.KeyboardButton button, ChatActivity parentFragment,
+                SharedPreferences preferences) {
             this.endpoint = endpoint;
             this.web3 = web3;
+            this.user_id = id;
             this.pk = pk;
             this.hash = hash;
             this.v = new WeakReference<>(v);
@@ -110,11 +116,20 @@ public class Totality {
             this.messageObject = messageObject;
             this.button = button;
             this.parentFragment = parentFragment;
+            this.preferences = preferences;
         }
 
         @Override
         protected Void doInBackground(Void... s) {
             try {
+                String expectedPub = Keys.toChecksumAddress(Credentials.create(this.pk).getAddress());
+                String addr = Totality.GetAddress(this.endpoint, this.user_id);
+                if (!expectedPub.equals(addr)) {
+                    SharedPreferences.Editor edit = preferences.edit();
+                    edit.putBoolean("keys_setup", false);
+                    edit.apply();
+                    throw new TotalityException("Keys are not setup");
+                }
                 if (!Totality.CreateResult(this.endpoint, this.hash)) {
                     return null;
                 }
