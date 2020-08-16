@@ -351,19 +351,18 @@ public class EthereumSettingsActivity extends BaseFragment {
             edit.putBoolean("keys_setup", false);
             dlgAlert.setMessage("Your private key is not set");
             dlgAlert.create().show();
-            edit.apply();
         }
         else if(!expectedPubKey.equals(publicKey)){
             edit.putBoolean("keys_setup", false);
             dlgAlert.setMessage("WARNING: private key does not match public address");
             dlgAlert.create().show();
-            edit.apply();
         }else{
             new SetPublicKeyTask(context, this, edit).execute(publicKey);
             edit.putString("eth_private_key", privateKey);
             edit.putBoolean("keys_setup", true);
             finishFragment();
         }
+        edit.apply();
     }
 
     @Override
