@@ -264,7 +264,18 @@ public class Totality {
         }
     }
 
+    private static String address;
+    private static long last_updated;
+
     public static String GetAddress(String endpoint, int id) throws TotalityException {
+        if (Totality.address != null) {
+            final long now = System.currentTimeMillis();
+            if (now - Totality.last_updated < 20*1000) { // 20 seconds cache
+                return Totality.address;
+            }
+            Totality.last_updated = now;
+        }
+
         String url = String.format("%s/tg/%s",
                 endpoint, id
         );
@@ -281,7 +292,8 @@ public class Totality {
                 throw new TotalityException("Something went wrong");
             }
             JSONObject j = new JSONObject(response.body().string());
-            return j.getString("address");
+            Totality.address = j.getString("address");
+            return Totality.address;
         } catch (JSONException e) {
             throw new TotalityException("Something went wrong");
         } catch (IOException e) {
