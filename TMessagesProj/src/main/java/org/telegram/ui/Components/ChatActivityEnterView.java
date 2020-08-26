@@ -5932,7 +5932,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
             parentFragment.showDialog(builder.create());
         } else if (button instanceof TLRPC.TL_keyboardButtonCallback || button instanceof TLRPC.TL_keyboardButtonGame || button instanceof TLRPC.TL_keyboardButtonBuy || button instanceof TLRPC.TL_keyboardButtonUrlAuth) {
             SendMessagesHelper helper = SendMessagesHelper.getInstance(currentAccount);
-            if (button instanceof TLRPC.TL_keyboardButtonCallback && new String(button.data, Charset.forName("UTF-8")).startsWith("tgtotal-")) {
+            if (button instanceof TLRPC.TL_keyboardButtonCallback && new String(button.data, Charset.forName("UTF-8")).startsWith("tgtotdo-")) {
                 SharedPreferences userDetails = getContext().getSharedPreferences("userdetails", Context.MODE_PRIVATE);
                 final boolean setup_finished = userDetails.getBoolean("keys_setup", false);
                 if (!setup_finished) {
