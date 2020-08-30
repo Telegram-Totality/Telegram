@@ -1,3 +1,14 @@
+Add the following to `gradle.properties` file
+```
+TOTALITY_ENDPOINT=http://monnie.totality.cc:7800
+WEB3_ENDPOINT=https://ropsten.infura.io/v3/{your_token}
+
+```
+
+
+
+
+# Original Readme
 ## Telegram messenger for Android
 
 [Telegram](https://telegram.org) is a messaging app with a focus on speed and security. It’s superfast, simple and free.

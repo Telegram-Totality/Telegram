@@ -5179,7 +5179,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             botButton.width = buttonWidth;
                             botButton.height = AndroidUtilities.dp(44);
                             if (botButton.button.data != null && new String(botButton.button.data, Charset.forName("UTF-8")).startsWith("tgtotdo-")) {
-                                botButton.button.text = "Ξ" + botButton.button.text;
+                                if(!botButton.button.text.startsWith("Ξ")) {
+                                    botButton.button.text = "Ξ" + botButton.button.text;
+                                }
                             }
                             CharSequence buttonText;
                             if (botButton.button instanceof TLRPC.TL_keyboardButtonBuy && (messageObject.messageOwner.media.flags & 4) != 0) {
