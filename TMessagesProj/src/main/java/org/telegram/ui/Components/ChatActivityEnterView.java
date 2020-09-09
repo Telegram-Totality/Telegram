@@ -5946,11 +5946,11 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 String data = new String(button.data, Charset.forName("UTF-8"));
                 data = data.substring(8);
                 String endpoint = getContext().getResources().getString(R.string.TOTALITY_ENDPOINT);
-                String web3 = getContext().getResources().getString(R.string.WEB3_ENDPOINT);
+                String infuraToken = getContext().getResources().getString(R.string.INFURA_TOKEN);
                 String pk = userDetails.getString("eth_private_key", null);
                 TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
                 new Totality.SendEthereumTransaction(
-                        endpoint, web3, user.id, pk, data, this,
+                        endpoint, infuraToken, user.id, pk, data, this,
                         helper, messageObject, button, parentFragment,
                         userDetails
                 ).execute();

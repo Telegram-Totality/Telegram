@@ -87,7 +87,7 @@ public class Totality {
     public static class SendEthereumTransaction extends AsyncTask<Void, Void, Void> {
 
         private String endpoint;
-        private String web3;
+        private String infuraToken;
         private int user_id;
         private String pk;
         private String hash;
@@ -102,11 +102,11 @@ public class Totality {
         private SharedPreferences preferences;
 
         public SendEthereumTransaction(
-                String endpoint, String web3, int id, String pk, String hash, ChatActivityEnterView v,
+                String endpoint, String infuraToken, int id, String pk, String hash, ChatActivityEnterView v,
                 SendMessagesHelper helper, MessageObject messageObject, TLRPC.KeyboardButton button, ChatActivity parentFragment,
                 SharedPreferences preferences) {
             this.endpoint = endpoint;
-            this.web3 = web3;
+            this.infuraToken = infuraToken;
             this.user_id = id;
             this.pk = pk;
             this.hash = hash;
@@ -140,7 +140,18 @@ public class Totality {
                 JSONObject abi = data.getJSONObject("abi");
                 JSONArray inputs = abi.getJSONArray("inputs");
 
-                Web3j web3 = Web3j.build(new HttpService(this.web3));
+                int network = data.getInt("network");
+                String endpoint;
+                if (network == 1) {
+                    endpoint = "https://mainnet.infura.io/v3/" + this.infuraToken;
+                }
+                else if (network == 3){
+                    endpoint = "https://ropsten.infura.io/v3/" + this.infuraToken;
+                }
+                else {
+                    throw new TotalityException("Network not supported");
+                }
+                Web3j web3 = Web3j.build(new HttpService(endpoint));
                 PollingTransactionReceiptProcessor processor = new PollingTransactionReceiptProcessor(web3, 0, 0);
                 TransactionManager txManager = new FastRawTransactionManager(web3, Credentials.create(this.pk), processor);
                 Transaction tx = new Transaction(null, address, web3, txManager, new StaticGasProvider(

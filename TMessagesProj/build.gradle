@@ -96,7 +96,7 @@ android {
             minifyEnabled false
             multiDexEnabled true
             resValue "string", "TOTALITY_ENDPOINT", TOTALITY_ENDPOINT
-            resValue "string", "WEB3_ENDPOINT", WEB3_ENDPOINT
+            resValue "string", "INFURA_TOKEN", INFURA_TOKEN
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
@@ -137,7 +137,7 @@ android {
             minifyEnabled false
             multiDexEnabled true
             resValue "string", "TOTALITY_ENDPOINT", TOTALITY_ENDPOINT
-            resValue "string", "WEB3_ENDPOINT", WEB3_ENDPOINT
+            resValue "string", "INFURA_TOKEN", INFURA_TOKEN
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
@@ -149,7 +149,7 @@ android {
             shrinkResources false
             multiDexEnabled true
             resValue "string", "TOTALITY_ENDPOINT", TOTALITY_ENDPOINT
-            resValue "string", "WEB3_ENDPOINT", WEB3_ENDPOINT
+            resValue "string", "INFURA_TOKEN", INFURA_TOKEN
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
